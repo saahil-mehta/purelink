@@ -1,0 +1,100 @@
+Advertising,"Here is a list of prominent advertising APIs commonly used to manage, optimize, and analyze ad campaigns across various platforms:"
+Advertising,**Google Ads API**
+Advertising,
+Advertising,
+Advertising,
+AI/ML,Here is a comprehensive list of notable AI/ML APIs available for developers in 2025:
+AI/ML,OpenAI API – Offers cutting-edge models like ChatGPT for natural language processing and DALL-E for image generation[1][3][4]
+AI/ML,"Google Cloud AI API – Provides a broad suite of AI and ML services including vision, language, and AutoML tools[1][3][4]"
+AI/ML,Microsoft Azure AI Services API – Cloud AI offerings integrating OpenAI models and other ML capabilities[1][3][4]
+AI/ML,"Hugging Face API – Access to a large collection of pre-trained models for NLP, computer vision, and more[1][4]"
+Agriculture,Here is a list of notable APIs for Agriculture with brief descriptions:
+Agriculture,**Perenual Plant API**
+Agriculture,
+Agriculture,
+Agriculture,- API type: RESTful
+Analytics,"Here is a list of notable APIs and platforms for Analytics, particularly focusing on API analytics:"
+Analytics,"**Google Analytics Data API v1**: Allows programmatic access to Google Analytics report data, useful for tracking user behavior, sessions, page views, and active users by various dimensions"
+Analytics,"**Amazon CloudWatch**: AWS’s monitoring service can track API Gateway metrics such as request counts, latency, and error rates"
+Analytics,**Microsoft Azure Monitor**: Provides comprehensive monitoring and diagnostics for APIs and applications running on Azure
+Analytics,"**Dynatrace**: An application performance management tool offering real-time API analytics, automatic observability insights, and health checks for APIs and infrastructure[1]"
+Appointment and Scheduling Management,Here is a list of notable APIs for appointment and scheduling management:
+Appointment and Scheduling Management,"**Healthie Scheduling API** – Designed for digital health startups, this API provides online patient booking, automated reminders (email & SMS), multi-provider calendars, multi-location support, electronic patient onboarding, and two-way sync with Google, iCal, and Outlook calendars"
+Appointment and Scheduling Management,**Nylas Calendar API** – A full-service API platform that includes calendar and scheduling capabilities
+Appointment and Scheduling Management,"**Cronofy Calendar API** – Enables connection to multiple calendar services, provides real-time availability, and includes UI components for embedding scheduling tools"
+Appointment and Scheduling Management,"**Calendly API** – A REST-based API allowing businesses to retrieve scheduling links, report on meetings, and get availability for event types across team members"
+Aerospace,Here is a list of notable APIs for the aerospace domain:
+Aerospace,"**Aviation Edge APIs** – Provide a wide range of aviation data APIs including Real-time Flight Tracker, Timetables, IATA and ICAO data, Routes, Flight Delay, Historical Schedules, Nearby Airports, Satellite Tracker (for satellite live location data), and Autocomplete API for airports and cities"
+Aerospace,**Boeing Developer Tools APIs** – Key APIs include:
+Aerospace,
+Aerospace,
+Automotive,"Here is a list of APIs commonly used in the automotive domain, covering vehicle data, diagnostics, and integration capabilities:"
+Automotive,**CarMD API**
+Automotive,"Useful for apps targeting repairs, diagnostics, parts listing, cost calculations, warranty, and recall info"
+Automotive,**Edmunds Vehicle API**
+Automotive,Suitable for vehicle specs and valuation but does not support live data polling[1]
+Background Check Software,"Here is a list of APIs for background check software, based on the latest available information:"
+Background Check Software,**Checkr Background Check API**
+Background Check Software,
+Background Check Software,
+Background Check Software,
+Bidding & Procurement,Here is a list of notable APIs related to bidding and procurement:
+Bidding & Procurement,**Open Procurement API**
+Bidding & Procurement,
+Bidding & Procurement,
+Bidding & Procurement,
+Biotechnology,Here is a list of APIs related to biotechnology and biotech API manufacturers based on available information:
+Biotechnology,API Manufacturers and Suppliers (biotechnological/biopharmaceutical APIs):
+Biotechnology,
+Biotechnology,
+Biotechnology,", Inc"
+Carbon Analytics,Here is a list of APIs for Carbon Analytics and related carbon footprint and emissions data services:
+Carbon Analytics,**Carbon Analytics API**
+Carbon Analytics,
+Carbon Analytics,
+Carbon Analytics,
+Case Management,Here is a list of notable Case Management APIs available:
+Case Management,"**Akamai Case Management API v2 and v3**: These APIs allow administrators of Akamai products to create, query, update, and close support tickets (cases)"
+Case Management,"**Talkdesk Case Public API**: Offers full management of cases including creating, querying, updating, and deleting cases"
+Case Management,**IBM Case Management REST API**: IBM provides REST APIs for interacting with cases in their Case Manager and Business Automation Workflow products
+Case Management,"**Datadog Case Management API**: Part of the larger Datadog platform, this API supports case management functionalities related to incident and issue tracking, workflow automation, and service management, integrating with monitoring and troubleshooting tools for IT and DevOps teams[5]"
+Chemicals,Here is a list of APIs (Active Pharmaceutical Ingredients) sources and chemical APIs data providers:
+Chemicals,"Syensqo provides a variety of chemicals for APIs including functional chemicals (like RhodaPhos®, CYTOP®, CYPHOS®), fine chemicals, and starting raw materials for pharmaceutical synthesis"
+Chemicals,"Spectrum Chemical offers an extensive selection of chemical APIs and intermediates used in research and pharmaceutical industries, with over 35,000 organic chemicals available and custom solutions"
+Chemicals,"Sigma-Aldrich supplies numerous API grade products including common solvents like Ethanol, Benzyl alcohol, and specialty organics like Bis(methylthio)methane and γ-Hexalactone"
+Chemicals,"BOC Sciences specializes in APIs used for treatment of serious diseases like cancer, neurologic and cardiovascular conditions"
+Child and Family Welfare Software,"Here are some notable APIs and software platforms relevant for Child and Family Welfare, including case management, foster care, and related services:"
+Child and Family Welfare Software,**Binti CCWIS Platform**
+Child and Family Welfare Software,"Its solution includes modules for caregiver licensing, placements, case management, intake, investigations, eligibility & payments, federal reporting, and features a bi-directional API for secure integration with other systems such as Medicaid MMIS"
+Child and Family Welfare Software,"**Casebook for Child, Youth, and Family Services**"
+Child and Family Welfare Software,Its API capabilities allow integration and help agencies access and share critical information anywhere
+Client Information and Reporting Systems,"Here are several APIs and platforms relevant for Client Information and Reporting Systems, based on recent 2024-2025 sources:"
+Client Information and Reporting Systems,**Forsta APIs**
+Client Information and Reporting Systems,- Forsta provides two main reporting APIs:
+Client Information and Reporting Systems,
+Client Information and Reporting Systems,
+Cloud Computing,Here is a list of notable APIs commonly used in cloud computing:
+Cloud Computing,**Amazon CloudWatch API** – Monitors AWS cloud resources and applications in real-time
+Cloud Computing,"**Box API** – Enables file upload, management, and sharing in the cloud with endpoints like AddItemsToCollection, CopyFile, CreateCollaboration, etc"
+Cloud Computing,"**HubSpot API** – Facilitates integration with HubSpot for managing tasks, calendar events, and social content"
+Cloud Computing,"**Google Cloud Storage API** – Provides access to Google Cloud Storage for uploading, downloading, and managing objects"
+Collaboration & Communication,"Here is a list of prominent APIs for collaboration and communication, particularly for chat, voice, video, and team collaboration features:"
+Collaboration & Communication,"**MirrorFly** – Provides a chat SDK with 150+ features including push notifications, file sharing, group video/voice calls, read receipts, emojis, and more"
+Collaboration & Communication,"**Troop Messenger** – A collaboration-focused communication API, supporting chat, voice, and video features suitable for team communication across locations[1][5]"
+Collaboration & Communication,**Dolby
+Collaboration & Communication,"**Vonage** – An API designed to enhance customer and employee communication globally with scalable voice, video conferencing, call recording, and chat surveys[1][5]"
+Compliance,Here is a list of APIs and data sources related to Compliance across different domains:
+Compliance,**AWS Systems Manager Compliance API**
+Compliance,
+Compliance,
+Compliance,aws
+Computer-Aided Dispatch,Here are several APIs and platforms related to Computer-Aided Dispatch (CAD):
+Computer-Aided Dispatch,**RapidSOS API**
+Computer-Aided Dispatch,Many CAD providers integrate RapidSOS data directly into their systems via an API or interface
+Computer-Aided Dispatch,**Motorola Solutions Command Center APIs**
+Computer-Aided Dispatch,"Their Mobile Device Data Gateway API provides real-time unit location, video streaming, and status data for integration into cloud-native CAD software like CommandCentral CAD"
+Construction,Here is a list of notable APIs used in the construction industry:
+Construction,STACK API – A comprehensive API that allows integration with STACK’s construction estimating and project management platform
+Construction,ConstructionOnline API – A private REST API available for Business or Enterprise subscribers of ConstructionOnline
+Construction,Various Supply Chain Management APIs – Used to automate procurement workflows such as re-ordering materials based on inventory levels from suppliers[1]
+Construction,"Document Storage APIs – Integration with Dropbox, Google Drive, OneDrive, etc"
