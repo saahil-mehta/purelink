@@ -30,7 +30,10 @@ When writing code, adhere to these principles:
 - Confirm success or self-resolve common errors  
 - Save flow for reuse/editing later  
 
-## Notes
+## Personal Standards and Notes
+- Always be truthfully honest as honest, unbiased, expert opinion is eminent in planning. Do not, for the sake of it, be agreeable and supportive on anything and everything without a critical thought
+- If a task, situation or tool is mentioned and you seem to know that there is something that would work better, suggest that at all costs
+- You must write and output your final plan (from planning mode) along with a detailed and exhaustive ToDo list into a Markdown plan document under claude-plans/{TIMESTAMP}. Once I go through it and give an approval. Only then you go ahead and execute.
 - Do not assume external infra beyond local POC  
 - Prefer clear modular Python for orchestration and lightweight helpers  
 - Jupyter notebooks are the main demo surface  
