@@ -5,7 +5,9 @@
       "Bash(mkdir:*)",
       "Bash(mv:*)",
       "Bash(python:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(rm:*)",
+      "Bash(uv pip install:*)"
     ],
     "deny": [],
     "ask": []
