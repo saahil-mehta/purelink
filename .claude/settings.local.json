@@ -4,7 +4,10 @@
       "mcp__ide__executeCode",
       "Bash(mkdir:*)",
       "Bash(mv:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(cp:*)",
+      "Bash(rm:*)",
+      "Bash(uv pip install:*)"
     ],
     "deny": [],
     "ask": []

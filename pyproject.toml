@@ -1,7 +1,22 @@
 [project]
 name = "purelink"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
-requires-python = ">=3.13"
-dependencies = []
+description = "Data Engineering Agent POC for vertical ingestion workflows"
+readme = "docs/README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "google-genai>=0.3.0",
+    "python-ulid>=2.7.0",
+    "python-slugify>=8.0.0",
+    "python-dateutil>=2.8.0"
+]
+
+[project.scripts]
+purelink = "main:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

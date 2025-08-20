@@ -34,7 +34,7 @@ import json
 import hashlib
 from datetime import datetime, timezone
 import re
-import ulid
+from ulid import ULID
 from slugify import slugify
 from typing import TypedDict, NotRequired, Literal, Optional
 
@@ -91,7 +91,7 @@ def lookup_candidate(candidate_id: str, silent: bool = False) -> Optional[dict]:
         candidate_id: The candidate ID to look for
         silent: If True, don't print found message (used internally)
     """
-    candidate_store_dir = os.path.join("capture-intent", "candidates")
+    candidate_store_dir = os.path.join("data", "capture-intent", "candidates")
     candidates_file = os.path.join(candidate_store_dir, "candidates.jsonl")
     
     if not os.path.exists(candidates_file):
@@ -122,7 +122,7 @@ def lookup_candidate(candidate_id: str, silent: bool = False) -> Optional[dict]:
 
 def store_candidate(candidate_data: dict) -> str:
     """Store or update candidate information in the candidate store JSONL file."""
-    candidate_store_dir = os.path.join("capture-intent", "candidates")
+    candidate_store_dir = os.path.join("data", "capture-intent", "candidates")
     os.makedirs(candidate_store_dir, exist_ok=True)
     candidates_file = os.path.join(candidate_store_dir, "candidates.jsonl")
     
@@ -180,7 +180,7 @@ def resolve_from_input_with_candidate_store(user_text: str) -> Optional[dict]:
     # This is much better than hardcoded patterns - we learn from actual resolutions
     normalised_input = user_text.lower().strip()
     
-    candidate_store_dir = os.path.join("capture-intent", "candidates")
+    candidate_store_dir = os.path.join("data", "capture-intent", "candidates")
     candidates_file = os.path.join(candidate_store_dir, "candidates.jsonl")
     
     if not os.path.exists(candidates_file):
@@ -225,9 +225,8 @@ def setup_gemini_client() -> tuple[genai.Client, str]:
     """Initialise Gemini client and return client instance with model name."""
     print("=== Setting up Gemini Client ===")
     
-    # Set API key - in production, this should come from environment variables
-    # os.environ["GOOGLE_API_KEY"] = ""
-    os.environ["GOOGLE_API_KEY"] = ""
+    # CRITICAL ASSESSMENT: Hardcoded API keys pose security risk
+    # BETTER ALTERNATIVE: Use environment variables or config files
     api_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
     
     if not api_key:
@@ -391,11 +390,11 @@ def persist_record(user_text: str, normalised_candidates: list[dict], selected_i
     print("\n=== Persisting Record ===")
     
     # Setup storage - separate logs subfolder for ULID-based records
-    base_dir = "capture-intent"
+    base_dir = os.path.join("data", "capture-intent")
     logs_dir = os.path.join(base_dir, "logs")
     os.makedirs(base_dir, exist_ok=True)
     os.makedirs(logs_dir, exist_ok=True)
-    record_id = str(ulid.new())
+    record_id = str(ULID())
     
     # Build structured payload
     capture_payload = {
@@ -455,7 +454,7 @@ def generate_ui_payload(record: dict, selected_candidate: dict) -> dict:
     return display_payload
 
 
-def get_user_confirmation(selected_candidate: dict) -> bool:
+def get_user_confirmation(selected_candidate: dict, auto_confirm=False) -> bool:
     """Ask user to confirm if the selected tool is correct."""
     print(f"\nSelected Tool for Confirmation:")
     print(f"   Name: {selected_candidate['tool_name']}")
@@ -465,6 +464,10 @@ def get_user_confirmation(selected_candidate: dict) -> bool:
     print(f"   Confidence: {selected_candidate['confidence']}")
     print(f"   Notes: {selected_candidate['notes']}")
     print(f"   Candidate ID: {selected_candidate['candidateId']}")
+    
+    if auto_confirm:
+        print("\nAuto-confirming tool selection (non-interactive mode)")
+        return True
     
     while True:
         confirmation = input("\nIs this the correct tool? (y/n): ").strip().lower()
@@ -503,17 +506,20 @@ def get_supplementary_info() -> str:
     return " | ".join(parts)
 
 
-def main():
+def main(user_input=None):
     """Main execution flow for intent capture POC."""
     print("Intent Capture POC v2 - Starting")
     print("=" * 50)
+    
+    # Determine if running in non-interactive mode
+    non_interactive = user_input is not None
     
     try:
         # 1. Setup
         client, model_name = setup_gemini_client()
         
         # Main resolution loop with retry logic
-        max_retries = 3
+        max_retries = 3 if not non_interactive else 1  # Only one attempt in non-interactive mode
         attempt = 0
         
         while attempt < max_retries:
@@ -521,7 +527,11 @@ def main():
             
             # 2. Get user input
             if attempt == 1:
-                user_text = input("Describe the data tool you want (e.g., 'I need Salesforce customer data'): ").strip()
+                if user_input:
+                    user_text = user_input.strip()
+                    print(f"Using provided input: '{user_text}'")
+                else:
+                    user_text = input("Describe the data tool you want (e.g., 'I need Salesforce customer data'): ").strip()
             else:
                 print(f"\n--- Attempt {attempt} ---")
                 user_text = get_supplementary_info()
@@ -555,8 +565,8 @@ def main():
             
             selected_candidate = normalised_candidates[selected_index]
             
-            # 5. Get user confirmation
-            if get_user_confirmation(selected_candidate):
+            # 5. Get user confirmation (auto-confirm in non-interactive mode)
+            if get_user_confirmation(selected_candidate, auto_confirm=non_interactive):
                 # User confirmed - proceed with the selected tool
                 break
             else:

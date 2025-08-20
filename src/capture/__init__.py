@@ -1,0 +1,1 @@
+# Intent capture module
