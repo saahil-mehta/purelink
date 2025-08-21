@@ -58,8 +58,10 @@ def main():
             candidate_id = capture_result["selected_tool"]["candidateId"]
             print(f"\n=== Proceeding to Discovery Phase ===")
             print(f"Using candidate ID: {candidate_id}")
-            # Run discovery with candidate_id (skips capture intent, does method discovery + confirmation)
-            return discovery_main(candidate_id, non_interactive=False)
+            # Reuse client from capture phase to avoid duplicate setup
+            client = capture_result.get("client")
+            model_name = capture_result.get("model_name")
+            return discovery_main(candidate_id, non_interactive=False, client=client, model_name=model_name)
         else:
             print("Capture phase incomplete, stopping workflow")
             return None
