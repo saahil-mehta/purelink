@@ -7,7 +7,9 @@
       "Bash(python:*)",
       "Bash(cp:*)",
       "Bash(rm:*)",
-      "Bash(uv pip install:*)"
+      "Bash(uv pip install:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)"
     ],
     "deny": [],
     "ask": []
