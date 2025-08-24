@@ -9,15 +9,28 @@ Purelink implements a sequential agent workflow for data engineering:
 
 The agent uses LLM-powered resolution with intelligent caching and 30-day method expiration for cost efficiency.
 
-## Quick Start
+## Setup
 
+### Install UV Package Manager
 ```bash
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh    # Unix/Mac
+# Windows: powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+
 # Install dependencies
 uv pip install -e .
+```
 
-# Set API key
+### Set API Key
+```bash
+# Unix/Mac
 export GEMINI_API_KEY="your-key-here"
+# Windows: set GEMINI_API_KEY=your-key-here
+```
 
+## Usage
+
+```bash
 # Run complete workflow (interactive)
 python main.py workflow
 
@@ -60,7 +73,6 @@ data/
 
 ## Documentation
 
-- **[Setup Guide](uv-quickstart.md)** - Installation and environment setup
 - **[Workflow Guide](workflow-guide.md)** - Complete usage and architecture details
 
 ## Implementation Status

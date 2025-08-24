@@ -30,23 +30,21 @@ from typing import TypedDict, NotRequired, Literal, Optional
 from google import genai
 from google.genai import types
 
-# Import capture-intent functionality
+# Import shared utilities
 import sys
 from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent / "utils"))
 sys.path.append(str(Path(__file__).parent.parent / "capture"))
 
-from intent_capture import (
-    setup_gemini_client,
-    resolve_tool_from_input,
-    normalise_candidates,
-    get_user_confirmation,
-    generate_candidate_id,
-    ToolCandidate,
-    ToolResolution
-)
+from llm_client import setup_gemini_client
+from intent_capture import generate_candidate_id
 
 from .candidate_lookup import lookup_candidate_by_id
-from .method_store import lookup_methods_by_candidate_id, has_discovered_methods, get_method_expiration_info
+from .method_store import lookup_methods_by_candidate_id, get_method_expiration_info
+
+# Import URL verification
+import requests
+from urllib.parse import urljoin
 
 
 # Method discovery types
@@ -60,7 +58,6 @@ class OutputMethod(TypedDict):
     auth_type: NotRequired[str]         # authentication method required
     confidence: NotRequired[float]      # discovery confidence 0-1
     notes: NotRequired[str]             # implementation notes
-    setup_requirements: NotRequired[list[str]]  # setup steps needed
 
 
 class MethodDiscovery(TypedDict):
@@ -92,6 +89,43 @@ def generate_method_id(method_name: str, method_type: str, candidate_id: str) ->
     return f"{name_slug}-{method_type}-{short_hash}"
 
 
+def verify_documentation_url(url: str, domain: str) -> str:
+    """Verify if documentation URL exists and return verified URL or empty string."""
+    if not url or not url.strip():
+        return ""
+    
+    # Specific documentation URL patterns to try (avoid generic homepages)
+    specific_patterns = [
+        url,  # Try original first
+        f"https://{domain}/api/docs",
+        f"https://{domain}/docs/api", 
+        f"https://{domain}/api-reference",
+        f"https://{domain}/reference",
+        f"https://docs.{domain}/api",
+        f"https://developers.{domain}/docs",
+        f"https://developers.{domain}/reference",
+        f"https://api.{domain}/docs"
+    ]
+    
+    for test_url in specific_patterns:
+        try:
+            response = requests.head(test_url, timeout=5, allow_redirects=True)
+            if response.status_code == 200:
+                # Prefer URLs that look more specific (contain docs, reference, api)
+                specificity_keywords = ['docs', 'reference', 'api-reference', 'guide']
+                if any(keyword in test_url.lower() for keyword in specificity_keywords):
+                    print(f"   ✓ Verified specific documentation URL: {test_url}")
+                    return test_url
+                elif test_url == url:  # Original URL worked
+                    print(f"   ✓ Verified documentation URL: {test_url}")
+                    return test_url
+        except requests.RequestException:
+            continue
+    
+    print(f"   ✗ Could not verify specific documentation URL: {url}")
+    return ""
+
+
 
 
 def discover_methods_with_llm(client: genai.Client, model_name: str, candidate: dict) -> list[OutputMethod]:
@@ -112,35 +146,36 @@ TOOL INFORMATION:
 - Domain: {domain}
 - Website: {candidate.get('website_url', '')}
 
-Your task is to identify realistic data extraction/output methods for this tool. Consider:
-1. Official APIs (REST, GraphQL, SOAP)
-2. MCP (Model Context Protocol) servers if available
-3. Export features (CSV, Excel, JSON)
-4. Webhooks and real-time streams
-5. Database connections (if applicable)
-6. Third-party connectors (Zapier, Make.com, etc.)
+Your task is to identify specific data extraction/output methods for this tool.
+
+For each method you discover, find the MOST SPECIFIC documentation URL possible:
+- NOT generic developer homepages like "developers.example.com"  
+- YES specific method docs like "developers.example.com/docs/rest-api" or "example.com/api-reference"
 
 Produce JSON array of methods:
 [
   {{
-    "method_type": "api|mcp|export|webhook|database|connector",
+    "method_type": "api|export|webhook|database|connector",
     "method_name": "<descriptive name>",
     "endpoint": "<API endpoint or connection string if known>",
-    "docs_url": "<documentation URL if exists>",
+    "docs_url": "<SPECIFIC documentation URL for THIS method - not generic developer page>",
     "auth_type": "<authentication method: OAuth, API Key, Bearer Token, etc.>",
     "confidence": 0.0,
-    "notes": "<implementation notes or requirements>",
-    "setup_requirements": ["<list of setup steps>"]
+    "notes": "<brief implementation notes>"
   }}
 ]
 
-Rules:
+CRITICAL RULES for docs_url:
+- ONLY include docs_url if you can construct it from known patterns: {domain}/api/docs, {domain}/developers, {domain}/api-reference, {domain}/docs/api
+- If unsure about the exact URL, leave docs_url EMPTY ""
+- DO NOT guess or hallucinate documentation URLs
+- Better to have empty docs_url than incorrect ones
+
+Other rules:
 - Only suggest methods that likely exist for this specific tool
 - Prefer official methods over third-party
-- Include realistic documentation URLs
-- Rate confidence 0.1-1.0 based on likelihood
-- Provide 2-5 most viable methods
-- Be specific about authentication requirements
+- Rate confidence 0.1-1.0 based on actual knowledge
+- Provide 2-5 most viable methods based on what actually exists
 """
 
     resp = client.models.generate_content(
@@ -183,6 +218,8 @@ Rules:
     
     # Convert to OutputMethod format with IDs
     methods = []
+    candidate_domain = candidate.get("website_domain", "")
+    
     for method_data in methods_data:
         if not isinstance(method_data, dict):
             continue
@@ -190,16 +227,19 @@ Rules:
         method_name = method_data.get("method_name", "Unknown Method")
         method_type = method_data.get("method_type", "api")
         
+        # Verify documentation URL before storing
+        raw_docs_url = method_data.get("docs_url", "")
+        verified_docs_url = verify_documentation_url(raw_docs_url, candidate_domain) if raw_docs_url else ""
+        
         method: OutputMethod = {
             "method_id": generate_method_id(method_name, method_type, candidate_id),
             "method_type": method_type,
             "method_name": method_name,
             "endpoint": method_data.get("endpoint", ""),
-            "docs_url": method_data.get("docs_url", ""),
+            "docs_url": verified_docs_url,
             "auth_type": method_data.get("auth_type", "Unknown"),
             "confidence": float(method_data.get("confidence", 0.5)),
-            "notes": method_data.get("notes", ""),
-            "setup_requirements": method_data.get("setup_requirements", [])
+            "notes": method_data.get("notes", "")
         }
         methods.append(method)
     
@@ -228,8 +268,6 @@ def present_methods_to_user(methods: list[OutputMethod], candidate: dict, auto_s
             print(f"   Endpoint: {method['endpoint']}")
         if method.get('notes'):
             print(f"   Notes: {method['notes']}")
-        if method.get('setup_requirements'):
-            print(f"   Setup: {', '.join(method['setup_requirements'][:2])}...")
         print()
     
     if auto_select:
@@ -245,13 +283,16 @@ def present_methods_to_user(methods: list[OutputMethod], candidate: dict, auto_s
     
     while True:
         try:
-            choice = input(f"Select method (1-{len(methods)}): ").strip()
+            choice = input(f"Select method (1-{len(methods)}) or Ctrl+C to cancel: ").strip()
             selected_index = int(choice) - 1
             if 0 <= selected_index < len(methods):
                 return selected_index
             else:
                 print(f"Please enter a number between 1 and {len(methods)}")
-        except (ValueError, KeyboardInterrupt):
+        except KeyboardInterrupt:
+            print("\nCancelled by user")
+            return -1
+        except ValueError:
             print("Please enter a valid number")
 
 
@@ -332,7 +373,7 @@ def generate_ui_payload(record: dict, selected_method: OutputMethod) -> dict:
     return display_payload
 
 
-def main(candidate_id=None, non_interactive=None):
+def main(candidate_id=None, non_interactive=None, client=None, model_name=None):
     """Main integrated workflow: capture-intent - discover-methods."""
     print("Integrated Capture-Intent + Discover-Methods Workflow v2")
     print("=" * 60)
@@ -345,48 +386,28 @@ def main(candidate_id=None, non_interactive=None):
     # If non_interactive explicitly set (True/False), respect that setting
     
     try:
-        # Setup
-        client, model_name = setup_gemini_client()
+        # Setup - only if not provided (for standalone usage)
+        if client is None or model_name is None:
+            client, model_name = setup_gemini_client()
         
-        # === PHASE 1: CAPTURE INTENT ===
-        print("\n" + "="*60)
-        print("PHASE 1: CAPTURE INTENT")
-        print("="*60)
-        
-        if candidate_id:
-            print(f"Using provided candidate ID: {candidate_id}")
-            # Look up candidate from store
-            selected_candidate = lookup_candidate_by_id(candidate_id)
-            if not selected_candidate:
-                print(f"Error: Candidate ID {candidate_id} not found in store")
-                return None
-            print(f"Found candidate: {selected_candidate['tool_name']}")
+        # === PHASE 1: CANDIDATE LOOKUP ===
+        if not candidate_id:
+            print("Error: candidate_id is required for method discovery")
+            print("Use 'python main.py capture' first, then 'python main.py discovery --candidate-id <id>'")
+            print("Or use 'python main.py workflow' for complete flow")
+            return None
             
-            # Skip user confirmation in non-interactive mode
+        print(f"Using provided candidate ID: {candidate_id}")
+        # Look up candidate from store
+        selected_candidate = lookup_candidate_by_id(candidate_id)
+        if not selected_candidate:
+            print(f"Error: Candidate ID {candidate_id} not found in store")
+            return None
+        print(f"Found candidate: {selected_candidate['tool_name']}")
+        
+        # Skip user confirmation in non-interactive mode
+        if non_interactive:
             print("Auto-confirming tool selection (non-interactive mode)")
-        else:
-            user_text = input("Describe the data tool you want (e.g., 'I need Salesforce customer data'): ").strip()
-            
-            if not user_text.strip():
-                print("Please provide a tool description.")
-                return None
-            
-            print(f"\nUser Input: '{user_text}'")
-            
-            # Resolve tool with LLM
-            tool_resolution = resolve_tool_from_input(client, model_name, user_text)
-            if tool_resolution is None:
-                print("Unable to resolve tool from input.")
-                return None
-            
-            # Normalise candidates
-            normalised_candidates, selected_index = normalise_candidates(tool_resolution)
-            selected_candidate = normalised_candidates[selected_index]
-            
-            # Get user confirmation
-            if not get_user_confirmation(selected_candidate):
-                print("Tool not confirmed. Exiting workflow.")
-                return None
         
         print(f"\nTool confirmed: {selected_candidate['tool_name']}")
         
@@ -437,8 +458,8 @@ def main(candidate_id=None, non_interactive=None):
             candidate_id or "interactive-input"
         )
         
-        # Generate UI payload
-        ui_payload = generate_ui_payload(record, selected_method)
+        # Generate UI payload (for future use)
+        # ui_payload = generate_ui_payload(record, selected_method)
         
         # === WORKFLOW COMPLETE ===
         print("\n" + "="*60)
@@ -453,8 +474,6 @@ def main(candidate_id=None, non_interactive=None):
         if selected_method.get('docs_url'):
             print(f"Documentation: {selected_method['docs_url']}")
         
-        if selected_method.get('setup_requirements'):
-            print(f"Setup Required: {', '.join(selected_method['setup_requirements'])}")
         
         print("\nReady for next phase: Credential Collection & Connection Testing")
         

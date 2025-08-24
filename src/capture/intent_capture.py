@@ -42,6 +42,12 @@ from typing import TypedDict, NotRequired, Literal, Optional
 from google import genai
 from google.genai import types
 
+# Import shared utilities
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent / "utils"))
+from llm_client import setup_gemini_client, get_user_confirmation as shared_get_user_confirmation
+
 
 # Type Definitions for Structured Data
 class IntentRecord(TypedDict):
@@ -221,96 +227,17 @@ def resolve_from_input_with_candidate_store(user_text: str) -> Optional[dict]:
     return None
 
 
-def setup_gemini_client() -> tuple[genai.Client, str]:
-    """Initialise Gemini client and return client instance with model name."""
-    print("=== Setting up Gemini Client ===")
-    
-    # CRITICAL ASSESSMENT: Hardcoded API keys pose security risk
-    # BETTER ALTERNATIVE: Use environment variables or config files
-    api_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
-    
-    if not api_key:
-        raise RuntimeError(
-            "Missing API key. Set GOOGLE_API_KEY (preferred) or GEMINI_API_KEY in your environment. "
-            "Create a key in Google AI Studio."
-        )
-    
-    # Create synchronous client
-    client = genai.Client(api_key=api_key)
-    model_name = "gemini-2.5-flash"
-    
-    # Test connectivity
-    response = client.models.generate_content(
-        model=model_name,
-        contents="Return a single short sentence confirming the client is working.",
-        config=types.GenerateContentConfig(
-            max_output_tokens=64,
-            temperature=0.2,
-        ),
-    )
-    
-    print(f"Gemini client initialised successfully")
-    print(f"Connectivity test: {response.text}")
-    print(f"Using model: {model_name}")
-    
-    return client, model_name
 
 
 def resolve_tool_from_input(client: genai.Client, model_name: str, user_text: str) -> dict:
     """Use LLM to resolve user input into structured tool information."""
-    print(f"\n=== Resolving Tool from Input: '{user_text}' ===")
+    from llm_client import resolve_tool_from_input as shared_resolve_tool_from_input
     
-    prompt = f"""
-You are a resolver that identifies a software/data tool from noisy user text.
-
-USER_TEXT: {user_text}
-
-Produce JSON with this structure:
-{{
-  "candidates": [
-    {{
-      "tool_name": "<canonical tool name>",
-      "developer": "<vendor or developer, if known>",
-      "website_domain": "<registrable domain like salesforce.com, if known>",
-      "website_url": "<full homepage URL, if known>",
-      "logo_url": "",  // leave empty; caller may set Clearbit-style logo from domain
-      "confidence": 0.0,  // 0 to 1
-      "notes": "<one-line disambiguation or clarifying note>"
-    }}
-  ],
-  "selected_index": 0,
-  "disambiguation": "<one short sentence if multiple tools are plausible>",
-  "citations": []  // optional URLs if you used known references
-}}
-
-Rules:
-- If multiple tools match, include the top 2-3 candidates in descending confidence and set selected_index accordingly.
-- Prefer official vendor domains, not community links.
-- If unsure, still return best-effort candidates and explain uncertainty in 'disambiguation'.
-- Return only JSON. No extra text.
-"""
-
-    # Ask the model for strictly-typed JSON
-    resp = client.models.generate_content(
-        model=model_name,
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=ToolResolution,
-            temperature=0,  # deterministic output
-            max_output_tokens=512,
-        ),
-    )
+    tool_resolution = shared_resolve_tool_from_input(client, model_name, user_text, ToolResolution)
     
-    tool_resolution = resp.parsed
-    print("LLM resolution completed")
-    print("Raw LLM output:")
-    print(json.dumps(tool_resolution, indent=2))
-    
-    # Handle case where LLM returns null/empty response
-    if not tool_resolution or not isinstance(tool_resolution, dict):
-        print("Warning: LLM returned empty or invalid response")
-        return None
+    if tool_resolution:
+        print("Raw LLM output:")
+        print(json.dumps(tool_resolution, indent=2))
     
     return tool_resolution
 
@@ -456,27 +383,7 @@ def generate_ui_payload(record: dict, selected_candidate: dict) -> dict:
 
 def get_user_confirmation(selected_candidate: dict, auto_confirm=False) -> bool:
     """Ask user to confirm if the selected tool is correct."""
-    print(f"\nSelected Tool for Confirmation:")
-    print(f"   Name: {selected_candidate['tool_name']}")
-    print(f"   Developer: {selected_candidate['developer'] or 'Unknown'}")
-    print(f"   Domain: {selected_candidate['website_domain'] or 'Unknown'}")
-    print(f"   Logo: {selected_candidate['logo_url'] or 'Not available'}")
-    print(f"   Confidence: {selected_candidate['confidence']}")
-    print(f"   Notes: {selected_candidate['notes']}")
-    print(f"   Candidate ID: {selected_candidate['candidateId']}")
-    
-    if auto_confirm:
-        print("\nAuto-confirming tool selection (non-interactive mode)")
-        return True
-    
-    while True:
-        confirmation = input("\nIs this the correct tool? (y/n): ").strip().lower()
-        if confirmation in ['y', 'yes']:
-            return True
-        elif confirmation in ['n', 'no']:
-            return False
-        else:
-            print("Please enter 'y' for yes or 'n' for no.")
+    return shared_get_user_confirmation(selected_candidate, auto_confirm)
 
 
 def get_supplementary_info() -> str:
@@ -506,7 +413,7 @@ def get_supplementary_info() -> str:
     return " | ".join(parts)
 
 
-def main(user_input=None):
+def main(user_input=None, client=None, model_name=None):
     """Main execution flow for intent capture POC."""
     print("Intent Capture POC v2 - Starting")
     print("=" * 50)
@@ -515,8 +422,9 @@ def main(user_input=None):
     non_interactive = user_input is not None
     
     try:
-        # 1. Setup
-        client, model_name = setup_gemini_client()
+        # 1. Setup - only if not provided
+        if client is None or model_name is None:
+            client, model_name = setup_gemini_client()
         
         # Main resolution loop with retry logic
         max_retries = 3 if not non_interactive else 1  # Only one attempt in non-interactive mode
@@ -592,7 +500,9 @@ def main(user_input=None):
             "record_id": record_id,
             "selected_tool": selected_candidate,
             "ui_payload": ui_payload,
-            "full_record": record
+            "full_record": record,
+            "client": client,
+            "model_name": model_name
         }
         
     except Exception as e:
