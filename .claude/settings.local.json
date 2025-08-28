@@ -9,7 +9,11 @@
       "Bash(rm:*)",
       "Bash(uv pip install:*)",
       "WebSearch",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(duckdb:*)",
+      "Bash(chmod:*)",
+      "WebFetch(domain:api.ref.tools)",
+      "WebFetch(domain:upstash.com)"
     ],
     "deny": [],
     "ask": []

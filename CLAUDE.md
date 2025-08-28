@@ -1,30 +1,47 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working in this repository. Follow this at all costs.
+NEVER IGNORE ANY INSTRUCTION FROM THE BELOW LISTS. This file provides guidance to Claude Code when working in this repository. Follow this at all costs.
 
 ## Project Overview
-This repo hosts a local POC for a vertical Data Engineering Agent. The agent flow:  
-User enters a shorthand source → model infers canonical source and confirms → lists ingestion options (focus: API) → enumerates endpoints → user selects → docs are fetched and saved to Markdown → model summarises instructions and lists required credentials/steps → user provides inputs → agent verifies connection → upon success, data is extracted and saved locally.  
-Keep code simple and aimed at cementing this end-to-end workflow.
+This repo hosts a **Data Engineering Co-Pilot** - an agentic system that builds, executes, and validates production-ready data pipelines.
+
+**Agent Architecture: Modular and Incremental**
+- **EL Agent**: Extract-Load pipelines with data quality validation
+- **TL Agent**: Transform-Load analytics-ready data with business logic validation  
+- **Recipe System**: Version-controlled, shareable pipeline configurations with execution history
+- **Execution Engine**: Docker-containerised pipeline execution with real-time monitoring
+
+**Core Workflow:**
+1. **Discovery**: Source identification → API enumeration → auth detection → schema discovery
+2. **Requirements**: User chooses complexity (POC/Production), storage (local/cloud), orchestration
+3. **Pipeline Design**: Agent generates battle-tested code with error handling, monitoring, validation
+4. **Execution**: Non-destructive testing in isolated containers with observability
+5. **Persistence**: Recipe creation with version control and cross-user learning
+
+**Quality Philosophy:** Less code, extremely high quality. Agent must execute and validate every pipeline it creates.
 
 ## Development Standards
 When writing code, adhere to these principles:
-- Prioritize simplicity and readability; reliability is the main goal  
-- Start with minimal functionality and verify it works before adding complexity  
-- Test code frequently with realistic inputs and validate outputs  
-- Create small testing environments for components hard to validate directly  
-- Use functional and stateless approaches where they improve clarity  
-- Keep core logic clean; push implementation details to the edges  
-- Maintain consistent style in indentation, naming, and patterns  
-- Balance file organization with simplicity—use only as many files as needed  
+- **Execution First**: Every pipeline must run successfully before considering it complete
+- **Non-Destructive Operations**: Always confirm before any write/update operations, like Terraform
+- **Docker Isolation**: Execute pipelines in containers to prevent environment contamination
+- **Battle-Tested Quality**: Less code, extremely high quality. No brittle or untested code
+- **Incremental Complexity**: Build modular agents (EL → TL) rather than monolithic systems
+- **Observability Built-In**: Real-time monitoring and logging are not optional extras
+- **Schema-First Validation**: Structure validation before business logic configuration
+- **Version Everything**: Code, configs, schemas, execution history - all under version control
+- **Default Local, Scale Cloud**: Local encryption/DuckDB defaults, cloud integration optional
+- **Hallucination Prevention**: Extreme measures to prevent auto-fixes from generating wrong code
+- **Cross-User Learning**: Usage patterns inform agent improvements across all users
 - Install dependencies by running `uv pip install` (uv package manager)
 
-## Important Notes and Guide
+## Important Notes and Guide, follow at all costs
 - Always be truthful as honest, unbiased, expert opinion is eminent in planning. Do not, for the sake of it, be agreeable and supportive on anything and everything without a critical thought
 - If a task, situation or tool is mentioned and you seem to know that there is something that would work better, suggest that at all costs
 - Do not assume external infra beyond local POC  
 - Prefer clear modular Python for orchestration and lightweight helpers  
-- Never add emojis, if you find them remove them. And the code and language must always be UK English.
+- Never add emojis, if you find them remove them. 
+- Your output and work language must always be UK English.
 - Always enforce critical thinking
 
   Add to Code Comments:
@@ -64,7 +81,7 @@ When writing code, adhere to these principles:
   4. Embrace the Debugging Mindset
 
   1. Observe patterns (works here, fails there)
-  2. Hypothesize systematically (not randomly)
+  2. Hypothesise systematically (not randomly)
   3. Test one variable at a time
   4. Isolate the true cause
 
